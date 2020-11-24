@@ -41,6 +41,12 @@ class InviteProspectUseCase(
                             else -> Mono.error(err)
                         }
                     }
+                    .onErrorResume { err ->
+                        when (err) {
+                            is ProspectHasNoPhoneNumberException -> flag.mark(prospect).flatMap { Mono.error(ProspectHasNoPhoneNumberException(prospect))  }
+                            else -> Mono.error(err)
+                        }
+                    }
             }
     }
 

@@ -12,8 +12,8 @@ When that's the case, we would like to fallback on a text message (Email should 
 ### Business Rules (Your todo list)
 - [/] If the prospect has no email, fallback to an SMS
 - [/] If sending the email fails, cancel the operation, we favour mail over text
-- [ ] If sending the text fails, cancel the operation
-- [ ] If the prospect has no contact (no email or sms), we should flag him for review
+- [/] If sending the text fails, cancel the operation
+- [/] If the prospect has no contact (no email or sms), we should flag him for review
 - [ ] Our api is not really user friendly, we always return a 500, some errors should have a friendly error message
      - [ ]Sometimes the operator enters a wrong Prospect id so the prospect is not found when sending the mail
      - [ ]If sending the email failed, we should prompt them to try again in a while
