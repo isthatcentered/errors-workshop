@@ -15,7 +15,14 @@ class InviteController(private val inviteProspectUseCase: InviteProspectUseCase)
 
         return inviteProspectUseCase.runFor(prospect)
             .flatMap { respond(200, "Ok") }
-            .onErrorResume { respond(500, "Something went wrong") }
+            .onErrorResume { error ->
+                when(error) {
+                    is ProspectNotFoundException -> respond(400, "No one !")
+                    is CouldNotSendEmailException -> respond(500, "Try again !")
+                    is ProspectHasNoPhoneNumberException -> respond(500, "No contact fot selected prospect")
+                    else -> respond(500, "Something went wrong !")
+                }
+            }
     }
 
     // ... other controller routes (index, new, create, show, ...)
