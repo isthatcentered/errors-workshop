@@ -26,6 +26,8 @@ sealed class InviteProspectReceipt {
     object InviteFailed: InviteProspectReceipt()
     object InviteSuccess: InviteProspectReceipt()
     object InviteProspectNotFound: InviteProspectReceipt()
+    object NoContactForProspect: InviteProspectReceipt()
+    data class UnHandledError(val message: String): InviteProspectReceipt()
 }
 
 class InviteProspectUseCase(
@@ -44,8 +46,11 @@ class InviteProspectUseCase(
                                when (sendMailReceipt) {
                                    is SendMailReceipt.Success -> Mono.just(InviteProspectReceipt.InviteSuccess)
                                    is SendMailReceipt.ProspectNotFound -> Mono.just(InviteProspectReceipt.InviteProspectNotFound)
-                                   is SendMailReceipt.ProspectHasNoEmail -> sendWelcomeSMS(prospect, inviteLinkReceipt.link).flatMap {
-                                       InviteProspectReceipt.InviteSuccess.toMono()
+                                   is SendMailReceipt.ProspectHasNoEmail -> sendWelcomeSMS(prospect, inviteLinkReceipt.link).flatMap {smsReceipt ->
+                                        when (smsReceipt) {
+                                            is SendSMSReceipt.ProspectHasNoPhoneNumber -> flag.mark(prospect).map { InviteProspectReceipt.NoContactForProspect }
+                                            else -> InviteProspectReceipt.UnHandledError("Something went horribly wrong!").toMono()
+                                        }
                                    }
                                    is SendMailReceipt.Error -> InviteProspectReceipt.InviteFailed.toMono()
                                }
