@@ -1,8 +1,8 @@
 package solutions.`throw`
 
-import exercises.`throw`.CouldNotSendEmailException
-import exercises.`throw`.ProspectHasNoPhoneNumberException
-import exercises.`throw`.ProspectNotFoundException
+import solutions.`throw`.CouldNotSendEmailException
+import solutions.`throw`.ProspectHasNoPhoneNumberException
+import solutions.`throw`.ProspectNotFoundException
 import framework.RequestBody
 import framework.ServerResponse
 import framework.respond

@@ -10,8 +10,8 @@ Currently, we send the invitation via email, unfortunately, some of our prospect
 When that's the case, we would like to fallback on a text message (Email should still be the primary delivery method). 
 
 ### Business Rules (Your todo list)
-- [ ] If the prospect has no email, fallback to an SMS
-- [ ] If sending the email fails, cancel the operation, we favour mail over text
+- [/] If the prospect has no email, fallback to an SMS
+- [/] If sending the email fails, cancel the operation, we favour mail over text
 - [ ] If sending the text fails, cancel the operation
 - [ ] If the prospect has no contact (no email or sms), we should flag him for review
 - [ ] Our api is not really user friendly, we always return a 500, some errors should have a friendly error message

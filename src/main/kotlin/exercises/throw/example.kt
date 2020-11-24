@@ -31,7 +31,17 @@ class InviteProspectUseCase(
     fun runFor(prospect: ProspectId): Mono<Unit> {
         return invitations
             .generateInviteLinkfor(prospect)
-            .flatMap { inviteLink -> sendWelcomeEmail(prospect, inviteLink) }
+            .flatMap { inviteLink ->
+                sendWelcomeEmail(prospect, inviteLink)
+                    .onErrorResume { err ->
+                        when (err) {
+                            is ProspectHasNoMailException -> sendWelcomeSMS(prospect, inviteLink)
+                            is ProspectNotFoundException -> Mono.error(err)
+                            is CouldNotSendEmailException -> Mono.error(err)
+                            else -> Mono.error(err)
+                        }
+                    }
+            }
     }
 
     private fun sendWelcomeEmail(prospect: ProspectId, inviteLink: InviteLink): Mono<Unit> {
@@ -55,6 +65,12 @@ interface FlagService {
 }
 
 interface MailNotifier {
+
+    /**
+     * throws ProspectNotFoundException
+     * throws ProspectHasNoEmailException
+     * throws
+     */
     fun send(mail: MailTemplate, to: ProspectId): Mono<Unit>
 }
 
