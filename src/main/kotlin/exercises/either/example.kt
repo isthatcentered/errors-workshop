@@ -24,15 +24,6 @@ class InviteController(private val inviteProspectUseCase: InviteProspectUseCase)
     // ... other controller routes (index, new, create, show, ...)
 }
 
-// crates an invite in db
-// generates a 1 time login link
-generateInvite(prospectId) // no user not found for this, this is pure sync fn
-sendwelcome
-    contacts.for(propspectId)
-        flags.needsReview
-    notify(contacts, mail, notifyPolicy)
-flags.markAsPending
-
 sealed class InviteProspectError {
     object ProspectHasNoContact : InviteProspectError()
     object ProspectNotFound : InviteProspectError()
@@ -47,33 +38,8 @@ class InviteProspectUseCase(
     private val flag: FlagService,
 ) {
     fun runFor(prospect: ProspectId): Either<InviteProspectError, Unit> {
-        val computation = invitations
-            .generateInviteLinkfor(prospect)
-//            .task()
-//            .mapLeft(InviteProspectError::UnexpectedError)
-//            .flatMap { inviteLink -> sendWelcome(prospect, inviteLink) }
-
         return TODO()
     }
-
-//    private fun sendWelcome(prospect: ProspectId, inviteLink: InviteLink): Either<InviteProspectError, Unit> {
-//        return sendWelcomeEmail(prospect, inviteLink)
-//            .flatMapLeft {
-//                when (it) {
-//                    SendMailError.ProspectNotFound -> InviteProspectError.ProspectNotFound.left()
-//                    SendMailError.ProspectHasNoEmail ->
-//                        sendWelcomeSMS(prospect, inviteLink)
-//                            .flatMapLeft {
-//                                when (it) {
-//                                    SendSMSError.ProspectNotFound -> InviteProspectError.ProspectNotFound.left()
-//                                    SendSMSError.ProspectHasNoPhoneNumber ->
-//                                        flag.mark(prospect)
-//                                            .shortcircuit<InviteProspectError>(InviteProspectError.ProspectHasNoContact)
-//                                }
-//                            }
-//                }
-//            }
-//    }
 
     private fun sendWelcomeEmail(prospect: ProspectId, inviteLink: InviteLink): Either<SendMailError, Unit> {
         val welcomeEmail = MailTemplate(subject = "Hello", body = "World $inviteLink")
