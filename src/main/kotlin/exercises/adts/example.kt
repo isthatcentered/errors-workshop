@@ -1,5 +1,6 @@
 package exercises.adts
 
+import exercises.adts.InviteProspectReceipt.*
 import framework.RequestBody
 import framework.ServerResponse
 import framework.respond
@@ -15,8 +16,17 @@ class InviteController(private val inviteProspectUseCase: InviteProspectUseCase)
         val prospect = ProspectId(body.data.prospectId)
 
         return inviteProspectUseCase.runFor(prospect)
-            .flatMap { receipt -> respond(200, "All good") }
-            .onErrorResume { respond(500, "Something went wrong") }
+            .flatMap { receipt ->
+                when (receipt) {
+                    InviteSuccess -> respond(200, "All good")
+                    InviteFailed -> respond(500, "Can not generate invitation link")
+                    InviteProspectNotFound -> respond(400, "Can not found prospect")
+                    NoContactForProspect -> respond(500, "No contact for selected prospect")
+                    BlacklistedProspect -> respond(400, "Prospect has been banned")
+                    is UnHandledError -> respond(500, receipt.message)
+                }
+            }
+            .onErrorResume { respond(500, "Something went wrong: ${it.message}") }
     }
 
     // ... other controller routes (index, new, create, show, ...)
@@ -27,6 +37,7 @@ sealed class InviteProspectReceipt {
     object InviteSuccess: InviteProspectReceipt()
     object InviteProspectNotFound: InviteProspectReceipt()
     object NoContactForProspect: InviteProspectReceipt()
+    object BlacklistedProspect: InviteProspectReceipt()
     data class UnHandledError(val message: String): InviteProspectReceipt()
 }
 
@@ -44,18 +55,19 @@ class InviteProspectUseCase(
                     is GenerateInviteLinkReceipt.Success ->
                         sendWelcomeEmail(prospect, inviteLinkReceipt.link).flatMap {sendMailReceipt ->
                                when (sendMailReceipt) {
-                                   is SendMailReceipt.Success -> Mono.just(InviteProspectReceipt.InviteSuccess)
-                                   is SendMailReceipt.ProspectNotFound -> Mono.just(InviteProspectReceipt.InviteProspectNotFound)
+                                   is SendMailReceipt.Success -> Mono.just(InviteSuccess)
+                                   is SendMailReceipt.ProspectNotFound -> Mono.just(InviteProspectNotFound)
                                    is SendMailReceipt.ProspectHasNoEmail -> sendWelcomeSMS(prospect, inviteLinkReceipt.link).flatMap {smsReceipt ->
                                         when (smsReceipt) {
-                                            is SendSMSReceipt.ProspectHasNoPhoneNumber -> flag.mark(prospect).map { InviteProspectReceipt.NoContactForProspect }
-                                            else -> InviteProspectReceipt.UnHandledError("Something went horribly wrong!").toMono()
+                                            is SendSMSReceipt.ProspectHasNoPhoneNumber -> flag.mark(prospect).map { NoContactForProspect }
+                                            else -> UnHandledError("Something went horribly wrong!").toMono()
                                         }
                                    }
-                                   is SendMailReceipt.Error -> InviteProspectReceipt.InviteFailed.toMono()
+                                   is SendMailReceipt.Error -> InviteFailed.toMono()
                                }
                         }
-                    is GenerateInviteLinkReceipt.Error -> Mono.just(InviteProspectReceipt.InviteFailed)
+                    is GenerateInviteLinkReceipt.Error -> Mono.just(InviteFailed)
+                    GenerateInviteLinkReceipt.BlacklistedProspect -> Mono.just(BlacklistedProspect)
                 }
             }
     }
@@ -75,6 +87,7 @@ class InviteProspectUseCase(
 sealed class GenerateInviteLinkReceipt {
     data class Success(val link: InviteLink) : GenerateInviteLinkReceipt()
     data class Error(val error: Throwable) : GenerateInviteLinkReceipt()
+    object BlacklistedProspect : GenerateInviteLinkReceipt()
 }
 
 interface InvitationService {
