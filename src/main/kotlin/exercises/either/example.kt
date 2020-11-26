@@ -1,11 +1,11 @@
 package exercises.either
 
 import arrow.core.Either
+import arrow.core.extensions.either.bifunctor.leftWiden
 import arrow.core.flatMap
+import arrow.core.handleErrorWith
 import framework.RequestBody
 import framework.ServerResponse
-import framework.respond
-import reactor.core.publisher.Mono
 import shared.*
 
 class InviteController(private val inviteProspectUseCase: InviteProspectUseCase) {
@@ -37,8 +37,36 @@ class InviteProspectUseCase(
     private val invitations: InvitationService,
     private val flag: FlagService,
 ) {
-    fun runFor(prospect: ProspectId): Either<InviteProspectError, Unit> {
-        return TODO()
+    fun runFor(prospect: ProspectId): Either<InviteProspectError, String> {
+//        return invitations.generateInviteLinkfor(prospect).bimap({
+//            when (it) {
+//                InvitationError.ProspectNotFound -> InviteProspectError.ProspectNotFound
+//                InvitationError.ProspectBlacklisted -> InviteProspectError.ProspectNotFound
+//            }
+//        },{
+//            sendWelcomeEmail(prospect, it)
+//        })
+        return invitations.generateInviteLinkfor(prospect)
+                .mapLeft {
+                    when (it) {
+                        InvitationError.ProspectNotFound -> InviteProspectError.ProspectNotFound
+                        InvitationError.ProspectBlacklisted -> InviteProspectError.ProspectNotFound
+                    }
+                }
+                .flatMap { link ->
+                    sendWelcomeEmail(prospect, link).handleErrorWith { sendMailError ->
+                        when (sendMailError) {
+                            SendMailError.ProspectNotFound -> InviteProspectError.ProspectNotFound
+                            SendMailError.ProspectHasNoEmail -> sendWelcomeSMS(prospect, link).mapLeft { sendSmsError ->
+                                when(sendSmsError) {
+                                    SendSMSError.ProspectNotFound -> InviteProspectError.ProspectNotFound
+                                    SendSMSError.ProspectHasNoPhoneNumber -> InviteProspectError.ProspectHasNoContact
+                                }
+                            }
+                        }
+                    }
+                }
+                .map { "Invitation sent." }
     }
 
     private fun sendWelcomeEmail(prospect: ProspectId, inviteLink: InviteLink): Either<SendMailError, Unit> {
@@ -54,8 +82,14 @@ class InviteProspectUseCase(
 
 interface InvitationService {
     // 🛑 actually the guy might not exist or something
-    fun generateInviteLinkfor(propspect: ProspectId): Mono<InviteLink>
+    fun generateInviteLinkfor(propspect: ProspectId): Either<InvitationError, InviteLink>
 }
+
+sealed class InvitationError {
+    object ProspectNotFound : InvitationError()
+    object ProspectBlacklisted : InvitationError()
+}
+
 
 // 🛑 Is an either justified here ?
 interface FlagService {
