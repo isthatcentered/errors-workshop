@@ -1,4 +1,4 @@
-package exercises.`throw`
+package solutions.`throw`
 
 import shared.ProspectId
 

@@ -14,18 +14,24 @@
 - How can you take the right decision if you go in blind ?
 - Lack of confidence when the rules start piling on
 - Hard to know what might happen at the top level
+- shortcircuit is nice, but no clue here you'll end up, can't follow the flow
 // Pros
 
 ### Level 2 - Algebraic Data Types (ADTs)
 #### Intro
+- What is hard with throw is the guess work, you never know if you thought about everything or if something changed is the
 - Underlying problem ? Partial vs total fns
 - Adts to rescue
 
 #### Takeway (pros/cons)
+what happens if i delete a case
+what happens if someone adds a case 
+
 // Cons
 // Pros
 
-### Level 3 - Either
+### Level 3 - TaskEither / Either pattern
+// short circuit + you can follow the flow you just don't have to ackowledge it
 ## Bonus - Implement Either
 
 
@@ -45,6 +51,7 @@
 - we got rid of untyped errors but we lost shortcircuiting
 - focusing on the combined notifier sms+email might be sufficient enough ? Combined with custom error response this could be simpler ?
 - per section take away
+- do a basic implementation of all services to show what might be thrown
 
 ### Take away  
 si les pieces de base ne nous fournissent pas assez d'info, ne sont pas stables, dur de faire confiance à la composition de ces pieces.

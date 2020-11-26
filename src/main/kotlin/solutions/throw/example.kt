@@ -1,8 +1,5 @@
 package solutions.`throw`
 
-import exercises.`throw`.CouldNotSendEmailException
-import exercises.`throw`.ProspectHasNoPhoneNumberException
-import exercises.`throw`.ProspectNotFoundException
 import framework.RequestBody
 import framework.ServerResponse
 import framework.respond
@@ -26,6 +23,7 @@ class InviteController(private val inviteProspectUseCase: InviteProspectUseCase)
 					// 🛑
 					// This requires knowledge of the implementation, we only have this error if we found no email, it probably doesn't belong here
 					// The fact that we translate it to a totally different message is a hint
+					// How could we fix that
 					is ProspectHasNoPhoneNumberException -> respond(400, "No contacts found for prospect ${err.id}. Prospect has been marked for review.")
 					is CouldNotSendEmailException -> respond(500, "We found an email for this prospect but were not able to send it. Please try again in a few moments")
 					// 🛑

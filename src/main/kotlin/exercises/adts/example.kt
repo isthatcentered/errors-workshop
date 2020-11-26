@@ -5,8 +5,6 @@ import framework.ServerResponse
 import framework.respond
 import reactor.core.publisher.Mono
 import shared.*
-import exercises.adts.SendMailReceipt as SendMail
-import exercises.adts.SendSMSReceipt as SendSMS
 
 
 class InviteController(private val inviteProspectUseCase: InviteProspectUseCase) {
@@ -37,12 +35,12 @@ class InviteProspectUseCase(
             .flatMap { inviteLinkReceipt -> TODO() }
     }
 
-    private fun sendWelcomeEmail(prospect: ProspectId, inviteLink: InviteLink): Mono<SendMail> {
+    private fun sendWelcomeEmail(prospect: ProspectId, inviteLink: InviteLink): Mono<SendMailReceipt> {
         val welcomeEmail = MailTemplate(subject = "Hello", body = "World $inviteLink")
         return mail.send(welcomeEmail, prospect)
     }
 
-    private fun sendWelcomeSMS(prospect: ProspectId, inviteLink: InviteLink): Mono<SendSMS> {
+    private fun sendWelcomeSMS(prospect: ProspectId, inviteLink: InviteLink): Mono<SendSMSReceipt> {
         val text = SMSTemplate("Hello $inviteLink")
         return sms.send(text, prospect)
     }
@@ -51,6 +49,8 @@ class InviteProspectUseCase(
 
 sealed class GenerateInviteLinkReceipt {
     data class Success(val link: InviteLink) : GenerateInviteLinkReceipt()
+
+    // Is it usefull to have an error here (for the either part)
     data class Error(val error: Throwable) : GenerateInviteLinkReceipt()
 }
 
@@ -69,23 +69,23 @@ interface FlagService {
 
 
 sealed class SendMailReceipt {
-    object Success : SendMail()
-    object ProspectNotFound : SendMail()
-    object ProspectHasNoEmail : SendMail()
-    data class Error(val error: Throwable) : SendMail()
+    object Success : SendMailReceipt()
+    object ProspectNotFound : SendMailReceipt()
+    object ProspectHasNoEmail : SendMailReceipt()
+    data class Error(val error: Throwable) : SendMailReceipt()
 }
 
 interface MailNotifier {
-    fun send(mail: MailTemplate, to: ProspectId): Mono<SendMail>
+    fun send(mail: MailTemplate, to: ProspectId): Mono<SendMailReceipt>
 }
 
 sealed class SendSMSReceipt {
-    object Success : SendSMS()
-    object ProspectNotFound : SendSMS()
-    object ProspectHasNoPhoneNumber : SendSMS()
-    data class Error(val error: Throwable) : SendSMS()
+    object Success : SendSMSReceipt()
+    object ProspectNotFound : SendSMSReceipt()
+    object ProspectHasNoPhoneNumber : SendSMSReceipt()
+    data class Error(val error: Throwable) : SendSMSReceipt()
 }
 
 interface SMSNotifier {
-    fun send(sms: SMSTemplate, user: ProspectId): Mono<SendSMS>
+    fun send(sms: SMSTemplate, user: ProspectId): Mono<SendSMSReceipt>
 }

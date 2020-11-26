@@ -115,6 +115,7 @@ interface InvitationService {
 
 sealed class MarkProspectReceipt {
 	object Success : MarkProspectReceipt()
+	// 🛑 DO we care about those ? SHould we really represent them ? If so, how ?
 	data class Error(val error: Throwable) : MarkProspectReceipt()
 }
 
@@ -134,6 +135,7 @@ interface MailNotifier {
 	fun send(mail: MailTemplate, to: ProspectId): Mono<SendMail>
 }
 
+// 🛑 Note how this is a clear documentation on what might happen
 sealed class SendSMSReceipt {
 	object Success : SendSMS()
 	object ProspectNotFound : SendSMS()

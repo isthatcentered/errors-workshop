@@ -24,6 +24,7 @@ When that's the case, we would like to fallback on a text message (Email should 
 - [ ] A prospect might now be blacklisted:
       - [ ] Would you program know about it ? 
       - [ ] What response will the caller get and does it feel right ?
+      - [ ] Will you have fun trying to find why someone gets a 500 ??
 
 ## How to
 Except a few unimportant shared classes, each file contains the import collaborators for the example. 
